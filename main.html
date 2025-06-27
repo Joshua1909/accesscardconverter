@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Card Data Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0B192C 0%, #1E3E62 50%, #000000 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #FF6500;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .format-selector {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #1E3E62;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .format-selector h3 {
+            color: #1E3E62;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .format-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .format-btn {
+            background: white;
+            border: 2px solid #1E3E62;
+            color: #1E3E62;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .format-btn.active {
+            background: #FF6500;
+            color: white;
+            border-color: #FF6500;
+        }
+
+        .format-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(255, 101, 0, 0.3);
+        }
+
+        .format-info {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #1E3E62;
+            border-radius: 8px;
+            padding: 15px;
+            color: #1E3E62;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .converter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .converter-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .converter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            border-color: #FF6500;
+        }
+
+        .converter-card h3 {
+            color: #1E3E62;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #FF6500;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #1E3E62;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s ease;
+        }
+
+        select {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background: #1E3E62;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .result {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #1E3E62;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #0B192C;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .error {
+            color: #FF6500;
+            background: rgba(255, 255, 255, 0.95);
+            border-color: #FF6500;
+        }
+
+        .success {
+            color: #1E3E62;
+            background: rgba(255, 255, 255, 0.95);
+            border-color: #1E3E62;
+        }
+
+        .warning {
+            color: #FF6500;
+            background: rgba(255, 255, 255, 0.95);
+            border-color: #FF6500;
+        }
+
+        .inline-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .converter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .format-buttons {
+                justify-content: center;
+            }
+
+            .inline-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Access Card Data Converter</h1>
+        
+        <div class="format-selector">
+            <h3>Select Card Format</h3>
+            <div class="format-buttons">
+                <div class="format-btn active" data-format="26">26-bit Wiegand</div>
+                <div class="format-btn" data-format="32">32-bit</div>
+                <div class="format-btn" data-format="34">34-bit</div>
+                <div class="format-btn" data-format="35">35-bit Corporate 1000</div>
+                <div class="format-btn" data-format="37">37-bit</div>
+                <div class="format-btn" data-format="44">44-bit</div>
+                <div class="format-btn" data-format="48">48-bit</div>
+                <div class="format-btn" data-format="custom">Custom</div>
+            </div>
+            <div id="custom-length-input" style="display: none; margin-bottom: 15px;">
+                <input type="number" id="custom-bits" placeholder="Enter bit length" min="1" max="128" style="width: 200px; margin: 0 auto; display: block;">
+            </div>
+            <div id="format-info" class="format-info"></div>
+        </div>
+
+        <div class="converter-grid">
+            <!-- Format Validator -->
+            <div class="converter-card">
+                <h3>Format Validator & Detector</h3>
+                <div class="input-group">
+                    <label for="validate-input">Data to Validate:</label>
+                    <textarea id="validate-input" placeholder="Enter binary or hex data to validate and detect format"></textarea>
+                </div>
+                <button onclick="validateFormat()">Validate & Detect Format</button>
+                <div id="validate-result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- Binary to Components -->
+            <div class="converter-card">
+                <h3>Binary → FC + Card Number</h3>
+                <div class="input-group">
+                    <label for="binary-input">Binary Data:</label>
+                    <textarea id="binary-input" placeholder="Enter binary data..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="binary-preamble">Preamble Length (bits):</label>
+                    <input type="number" id="binary-preamble" value="0" min="0" max="32">
+                </div>
+                <button onclick="binaryToComponents()">Decode Binary</button>
+                <div id="binary-result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- Hex to Components -->
+            <div class="converter-card">
+                <h3>Hex → FC + Card Number</h3>
+                <div class="input-group">
+                    <label for="hex-input">Hex Data:</label>
+                    <input type="text" id="hex-input" placeholder="Enter hex data...">
+                </div>
+                <div class="input-group">
+                    <label for="hex-preamble">Preamble Length (bits):</label>
+                    <input type="number" id="hex-preamble" value="0" min="0" max="32">
+                </div>
+                <button onclick="hexToComponents()">Decode Hex</button>
+                <div id="hex-result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- Components to Binary/Hex -->
+            <div class="converter-card">
+                <h3>FC + Card Number → Binary/Hex</h3>
+                <div class="input-group">
+                    <label for="fc-input">Facility Code:</label>
+                    <input type="number" id="fc-input" min="0" placeholder="Enter facility code...">
+                </div>
+                <div class="input-group">
+                    <label for="card-input">Card Number:</label>
+                    <input type="number" id="card-input" min="0" placeholder="Enter card number...">
+                </div>
+                <div class="input-group">
+                    <label for="output-preamble">Add Preamble:</label>
+                    <input type="text" id="output-preamble" placeholder="Enter preamble bits (optional)" style="font-family: 'Courier New', monospace;">
+                </div>
+                <button onclick="componentsToFormat()">Encode to Binary/Hex</button>
+                <div id="components-result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- Binary/Hex Converter -->
+            <div class="converter-card">
+                <h3>Binary ↔ Hex Converter</h3>
+                <div class="input-group">
+                    <label for="bin-hex-input">Binary or Hex:</label>
+                    <textarea id="bin-hex-input" placeholder="Enter binary (010101...) or hex (A1B2C3...)"></textarea>
+                </div>
+                <button onclick="convertBinaryHex()">Convert</button>
+                <div id="bin-hex-result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- Full Card Data Parser -->
+            <div class="converter-card">
+                <h3>Full Card Data Parser</h3>
+                <div class="input-group">
+                    <label for="full-data-input">Complete Card Data:</label>
+                    <textarea id="full-data-input" placeholder="Paste full card data with preamble..."></textarea>
+                </div>
+                <div class="inline-inputs">
+                    <div class="input-group">
+                        <label for="preamble-length">Preamble Length:</label>
+                        <input type="number" id="preamble-length" value="18" min="0" max="64">
+                    </div>
+                    <div class="input-group">
+                        <label for="auto-detect">Auto-detect Format:</label>
+                        <select id="auto-detect">
+                            <option value="true">Yes</option>
+                            <option value="false">Use Selected Format</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="parseFullCardData()">Parse Complete Data</button>
+                <div id="full-data-result" class="result" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Corrected card format definitions
+        const cardFormats = {
+            26: {
+                name: '26-bit Wiegand',
+                totalBits: 26,
+                structure: 'Even Parity (1) + Facility Code (8) + Card Number (16) + Odd Parity (1)',
+                facilityStart: 1,
+                facilityBits: 8,
+                cardStart: 9,
+                cardBits: 16,
+                maxFC: 255,
+                maxCard: 65535,
+                hasParity: true,
+                evenParityStart: 1,
+                evenParityEnd: 12,
+                oddParityStart: 13,
+                oddParityEnd: 24
+            },
+            32: {
+                name: '32-bit',
+                totalBits: 32,
+                structure: 'Header (5) + Facility Code (11) + Card Number (16)',
+                facilityStart: 5,
+                facilityBits: 11,
+                cardStart: 16,
+                cardBits: 16,
+                maxFC: 2047,
+                maxCard: 65535,
+                hasParity: false
+            },
+            34: {
+                name: '34-bit',
+                totalBits: 34,
+                structure: 'Even Parity (1) + Facility Code (16) + Card Number (16) + Odd Parity (1)',
+                facilityStart: 1,
+                facilityBits: 16,
+                cardStart: 17,
+                cardBits: 16,
+                maxFC: 65535,
+                maxCard: 65535,
+                hasParity: true,
+                evenParityStart: 1,
+                evenParityEnd: 16,
+                oddParityStart: 17,
+                oddParityEnd: 32
+            },
+            35: {
+                name: '35-bit Corporate 1000',
+                totalBits: 35,
+                structure: 'Even Parity (1) + Company Code (4) + Facility Code (8) + Card Number (20) + Odd Parity (1)',
+                companyStart: 1,
+                companyBits: 4,
+                facilityStart: 5,
+                facilityBits: 8,
+                cardStart: 13,
+                cardBits: 20,
+                maxCompany: 15,
+                maxFC: 255,
+                maxCard: 1048575,
+                hasParity: true,
+                evenParityStart: 1,
+                evenParityEnd: 17,
+                oddParityStart: 18,
+                oddParityEnd: 34
+            },
+            37: {
+                name: '37-bit',
+                totalBits: 37,
+                structure: 'Even Parity (1) + Facility Code (16) + Card Number (19) + Odd Parity (1)',
+                facilityStart: 1,
+                facilityBits: 16,
+                cardStart: 17,
+                cardBits: 19,
+                maxFC: 65535,
+                maxCard: 524287,
+                hasParity: true,
+                evenParityStart: 1,
+                evenParityEnd: 18,
+                oddParityStart: 19,
+                oddParityEnd: 35
+            },
+            44: {
+                name: '44-bit',
+                totalBits: 44,
+                structure: 'Start Sentinel (2) + Facility Code (20) + Card Number (20) + End Sentinel (2)',
+                facilityStart: 2,
+                facilityBits: 20,
+                cardStart: 22,
+                cardBits: 20,
+                maxFC: 1048575,
+                maxCard: 1048575,
+                hasParity: false
+            },
+            48: {
+                name: '48-bit',
+                totalBits: 48,
+                structure: 'Facility Code (24) + Card Number (24)',
+                facilityStart: 0,
+                facilityBits: 24,
+                cardStart: 24,
+                cardBits: 24,
+                maxFC: 16777215,
+                maxCard: 16777215,
+                hasParity: false
+            }
+        };
+
+        let currentFormat = cardFormats[26];
+
+        // Helper functions
+        function showResult(elementId, content, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = content;
+            element.className = `result ${type}`;
+        }
+
+        function validateBinary(binary) {
+            return /^[01]+$/.test(binary);
+        }
+
+        function validateHex(hex) {
+            return /^[0-9A-Fa-f]+$/.test(hex);
+        }
+
+        function calculateParity(bits, format) {
+            if (!format.hasParity) {
+                return { evenParity: null, oddParity: null };
+            }
+
+            const evenParityBits = bits.slice(format.evenParityStart, format.evenParityEnd + 1);
+            const oddParityBits = bits.slice(format.oddParityStart, format.oddParityEnd + 1);
+            
+            const evenOnes = evenParityBits.split('').filter(bit => bit === '1').length;
+            const oddOnes = oddParityBits.split('').filter(bit => bit === '1').length;
+            
+            const evenParity = evenOnes % 2 === 0 ? '0' : '1';
+            const oddParity = oddOnes % 2 === 1 ? '1' : '0';
+            
+            return { evenParity, oddParity };
+        }
+
+        function extractComponents(binary, format) {
+            const result = {};
+            
+            // Extract facility code
+            result.facilityCode = parseInt(binary.slice(format.facilityStart, format.facilityStart + format.facilityBits), 2);
+            result.facilityBinary = binary.slice(format.facilityStart, format.facilityStart + format.facilityBits);
+            
+            // Extract card number
+            result.cardNumber = parseInt(binary.slice(format.cardStart, format.cardStart + format.cardBits), 2);
+            result.cardBinary = binary.slice(format.cardStart, format.cardStart + format.cardBits);
+            
+            // Extract company code if present
+            if (format.companyStart !== undefined) {
+                result.companyCode = parseInt(binary.slice(format.companyStart, format.companyStart + format.companyBits), 2);
+                result.companyBinary = binary.slice(format.companyStart, format.companyStart + format.companyBits);
+            }
+            
+            // Extract parity bits if present
+            if (format.hasParity) {
+                result.evenParity = binary[0];
+                result.oddParity = binary[binary.length - 1];
+            }
+            
+            // Extract sentinels for 44-bit format
+            if (format.totalBits === 44) {
+                result.startSentinel = binary.slice(0, 2);
+                result.endSentinel = binary.slice(42, 44);
+            }
+            
+            // Extract header for 32-bit format
+            if (format.totalBits === 32) {
+                result.header = binary.slice(0, 5);
+            }
+            
+            return result;
+        }
+
+        function detectFormat(binary) {
+            const length = binary.length;
+            
+            // Check for exact matches first
+            for (const [key, format] of Object.entries(cardFormats)) {
+                if (format.totalBits === length) {
+                    return format;
+                }
+            }
+            
+            // Return custom format for unknown lengths
+            return {
+                name: `Custom ${length}-bit`,
+                totalBits: length,
+                structure: `Custom format with ${length} bits`,
+                facilityStart: 0,
+                facilityBits: Math.floor(length / 2),
+                cardStart: Math.floor(length / 2),
+                cardBits: Math.ceil(length / 2),
+                maxFC: Math.pow(2, Math.floor(length / 2)) - 1,
+                maxCard: Math.pow(2, Math.ceil(length / 2)) - 1,
+                hasParity: false
+            };
+        }
+
+        function updateFormatInfo() {
+            const info = document.getElementById('format-info');
+            info.innerHTML = `
+                <strong>${currentFormat.name}</strong><br>
+                Total Bits: ${currentFormat.totalBits}<br>
+                Structure: ${currentFormat.structure}<br>
+                Max Facility Code: ${currentFormat.maxFC.toLocaleString()}<br>
+                Max Card Number: ${currentFormat.maxCard.toLocaleString()}
+            `;
+        }
+
+        // Format selector event handlers
+        document.querySelectorAll('.format-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const format = this.dataset.format;
+                const customInput = document.getElementById('custom-length-input');
+                
+                if (format === 'custom') {
+                    customInput.style.display = 'block';
+                } else {
+                    customInput.style.display = 'none';
+                    currentFormat = cardFormats[format];
+                    updateFormatInfo();
+                }
+            });
+        });
+
+        document.getElementById('custom-bits').addEventListener('input', function() {
+            const bits = parseInt(this.value);
+            if (bits > 0 && bits <= 128) {
+                currentFormat = {
+                    name: `Custom ${bits}-bit`,
+                    totalBits: bits,
+                    structure: `Custom format with ${bits} bits`,
+                    facilityStart: 0,
+                    facilityBits: Math.floor(bits / 2),
+                    cardStart: Math.floor(bits / 2),
+                    cardBits: Math.ceil(bits / 2),
+                    maxFC: Math.pow(2, Math.floor(bits / 2)) - 1,
+                    maxCard: Math.pow(2, Math.ceil(bits / 2)) - 1,
+                    hasParity: false
+                };
+                updateFormatInfo();
+            }
+        });
+
+        // Binary to Components (now handles preamble)
+        function binaryToComponents() {
+            const binary = document.getElementById('binary-input').value.replace(/\s/g, '');
+            const preambleLength = parseInt(document.getElementById('binary-preamble').value) || 0;
+            
+            if (!binary) {
+                showResult('binary-result', 'Please enter binary data.', 'error');
+                return;
+            }
+
+            if (!validateBinary(binary)) {
+                showResult('binary-result', 'Invalid binary data. Use only 0s and 1s.', 'error');
+                return;
+            }
+
+            if (preambleLength >= binary.length) {
+                showResult('binary-result', 'Preamble length cannot be greater than or equal to total data length.', 'error');
+                return;
+            }
+
+            let result = `Total Length: ${binary.length} bits\n`;
+            
+            if (preambleLength > 0) {
+                const preamble = binary.slice(0, preambleLength);
+                const cardData = binary.slice(preambleLength);
+                
+                result += `Preamble (${preambleLength} bits): ${preamble}\n`;
+                result += `Card Data: ${cardData}\n`;
+                result += `Card Data Length: ${cardData.length} bits\n\n`;
+                
+                // Auto-detect format based on card data length
+                const format = detectFormat(cardData);
+                const components = extractComponents(cardData, format);
+                
+                result += `Format: ${format.name}\n`;
+                if (components.facilityCode !== undefined) {
+                    result += `Facility Code: ${components.facilityCode}\n`;
+                }
+                if (components.cardNumber !== undefined) {
+                    result += `Card Number: ${components.cardNumber}\n`;
+                }
+                if (components.companyCode !== undefined) {
+                    result += `Company Code: ${components.companyCode}\n`;
+                }
+
+                result += `\nCard Data as Hex: ${parseInt(cardData, 2).toString(16).toUpperCase()}\n`;
+                result += `Full Data as Hex: ${parseInt(binary, 2).toString(16).toUpperCase()}\n`;
+                result += `\nBinary Breakdown:\n`;
+                
+                if (format.hasParity) {
+                    const { evenParity: calcEvenParity, oddParity: calcOddParity } = calculateParity(cardData, format);
+                    const parityValid = components.evenParity === calcEvenParity && components.oddParity === calcOddParity;
+                    
+                    result += `Even Parity: ${components.evenParity} (should be ${calcEvenParity})\n`;
+                    if (components.companyBinary) {
+                        result += `Company Code: ${components.companyBinary} = ${components.companyCode}\n`;
+                    }
+                    result += `Facility Code: ${components.facilityBinary} = ${components.facilityCode}\n`;
+                    result += `Card Number: ${components.cardBinary} = ${components.cardNumber}\n`;
+                    result += `Odd Parity: ${components.oddParity} (should be ${calcOddParity})\n`;
+                    result += `\nParity Check: ${parityValid ? 'VALID' : 'INVALID'}`;
+                } else {
+                    if (components.startSentinel) {
+                        result += `Start Sentinel: ${components.startSentinel}\n`;
+                    }
+                    if (components.header) {
+                        result += `Header: ${components.header}\n`;
+                    }
+                    if (components.companyBinary) {
+                        result += `Company Code: ${components.companyBinary} = ${components.companyCode}\n`;
+                    }
+                    result += `Facility Code: ${components.facilityBinary} = ${components.facilityCode}\n`;
+                    result += `Card Number: ${components.cardBinary} = ${components.cardNumber}`;
+                    if (components.endSentinel) {
+                        result += `\nEnd Sentinel: ${components.endSentinel}`;
+                    }
+                }
+                
+                const resultType = format.hasParity ? 
+                    (components.evenParity === calculateParity(cardData, format).evenParity && 
+                     components.oddParity === calculateParity(cardData, format).oddParity ? 'success' : 'warning') 
+                    : 'success';
+
+                showResult('binary-result', result, resultType);
+                
+            } else {
+                // No preamble - treat entire binary as card data
+                const format = detectFormat(binary);
+                const components = extractComponents(binary, format);
+                
+                result += `Format: ${format.name}\n\n`;
+
+                if (components.facilityCode !== undefined) {
+                    result += `Facility Code: ${components.facilityCode}\n`;
+                }
+                if (components.cardNumber !== undefined) {
+                    result += `Card Number: ${components.cardNumber}\n`;
+                }
+                if (components.companyCode !== undefined) {
+                    result += `Company Code: ${components.companyCode}\n`;
+                }
+
+                result += `\nBinary Breakdown:\n`;
+                
+                if (format.hasParity) {
+                    const { evenParity: calcEvenParity, oddParity: calcOddParity } = calculateParity(binary, format);
+                    const parityValid = components.evenParity === calcEvenParity && components.oddParity === calcOddParity;
+                    
+                    result += `Even Parity: ${components.evenParity} (should be ${calcEvenParity})\n`;
+                    if (components.companyBinary) {
+                        result += `Company Code: ${components.companyBinary} = ${components.companyCode}\n`;
+                    }
+                    result += `Facility Code: ${components.facilityBinary} = ${components.facilityCode}\n`;
+                    result += `Card Number: ${components.cardBinary} = ${components.cardNumber}\n`;
+                    result += `Odd Parity: ${components.oddParity} (should be ${calcOddParity})\n`;
+                    result += `\nParity Check: ${parityValid ? 'VALID' : 'INVALID'}\n`;
+                } else {
+                    if (components.startSentinel) {
+                        result += `Start Sentinel: ${components.startSentinel}\n`;
+                    }
+                    if (components.header) {
+                        result += `Header: ${components.header}\n`;
+                    }
+                    if (components.companyBinary) {
+                        result += `Company Code: ${components.companyBinary} = ${components.companyCode}\n`;
+                    }
+                    result += `Facility Code: ${components.facilityBinary} = ${components.facilityCode}\n`;
+                    result += `Card Number: ${components.cardBinary} = ${components.cardNumber}\n`;
+                    if (components.endSentinel) {
+                        result += `End Sentinel: ${components.endSentinel}\n`;
+                    }
+                }
+
+                result += `\nHex Equivalent: ${parseInt(binary, 2).toString(16).toUpperCase()}`;
+
+                const resultType = format.hasParity ? 
+                    (components.evenParity === calculateParity(binary, format).evenParity && 
+                     components.oddParity === calculateParity(binary, format).oddParity ? 'success' : 'warning') 
+                    : 'success';
+
+                showResult('binary-result', result, resultType);
+            }
+        }
+
+        // Hex to Components (now handles preamble)
+        function hexToComponents() {
+            const hex = document.getElementById('hex-input').value.replace(/\s/g, '');
+            const preambleLength = parseInt(document.getElementById('hex-preamble').value) || 0;
+            
+            if (!hex) {
+                showResult('hex-result', 'Please enter hex data.', 'error');
+                return;
+            }
+
+            if (!validateHex(hex)) {
+                showResult('hex-result', 'Invalid hex data. Use only 0-9 and A-F.', 'error');
+                return;
+            }
+
+            const decimal = parseInt(hex, 16);
+            const fullBinary = decimal.toString(2);
+            
+            let result = `Hex: ${hex.toUpperCase()}\n`;
+            result += `Full Binary: ${fullBinary}\n`;
+            result += `Full Length: ${fullBinary.length} bits\n\n`;
+            
+            if (preambleLength > 0) {
+                if (fullBinary.length < preambleLength) {
+                    showResult('hex-result', `Hex data too short for ${preambleLength}-bit preamble.`, 'error');
+                    return;
+                }
+                
+                const preamble = fullBinary.slice(0, preambleLength);
+                const cardData = fullBinary.slice(preambleLength);
+                
+                result += `Preamble (${preambleLength} bits): ${preamble}\n`;
+                result += `Card Data: ${cardData}\n`;
+                result += `Card Data Length: ${cardData.length} bits\n\n`;
+                
+                // Auto-detect format based on card data length
+                const format = detectFormat(cardData);
+                let paddedCardData = cardData;
+                
+                if (cardData.length < format.totalBits) {
+                    paddedCardData = cardData.padStart(format.totalBits, '0');
+                    result += `⚠ Padded to ${format.totalBits} bits: ${paddedCardData}\n\n`;
+                }
+                
+                const components = extractComponents(paddedCardData, format);
+                
+                result += `Format: ${format.name}\n`;
+                if (components.facilityCode !== undefined) {
+                    result += `Facility Code: ${components.facilityCode}\n`;
+                }
+                if (components.cardNumber !== undefined) {
+                    result += `Card Number: ${components.cardNumber}\n`;
+                }
+                if (components.companyCode !== undefined) {
+                    result += `Company Code: ${components.companyCode}\n`;
+                }
+
+                result += `\nBinary Breakdown:\n`;
+                
+                if (format.hasParity) {
+                    const { evenParity: calcEvenParity, oddParity: calcOddParity } = calculateParity(paddedCardData, format);
+                    const parityValid = components.evenParity === calcEvenParity && components.oddParity === calcOddParity;
+                    
+                    result += `Even Parity: ${components.evenParity} (should be ${calcEvenParity})\n`;
+                    if (components.companyBinary) {
+                        result += `Company Code: ${components.companyBinary} = ${components.companyCode}\n`;
+                    }
+                    result += `Facility Code: ${components.facilityBinary} = ${components.facilityCode}\n`;
+                    result += `Card Number: ${components.cardBinary} = ${components.cardNumber}\n`;
+                    result += `Odd Parity: ${components.oddParity} (should be ${calcOddParity})\n`;
+                    result += `\nParity Check: ${parityValid ? 'VALID' : 'INVALID'}`;
+                } else {
+                    if (components.startSentinel) {
+                        result += `Start Sentinel: ${components.startSentinel}\n`;
+                    }
+                    if (components.header) {
+                        result += `Header: ${components.header}\n`;
+                    }
+                    if (components.companyBinary) {
+                        result += `Company Code: ${components.companyBinary} = ${components.companyCode}\n`;
+                    }
+                    result += `Facility Code: ${components.facilityBinary} = ${components.facilityCode}\n`;
+                    result += `Card Number: ${components.cardBinary} = ${components.cardNumber}`;
+                    if (components.endSentinel) {
+                        result += `\nEnd Sentinel: ${components.endSentinel}`;
+                    }
+                }
+                
+                const resultType = format.hasParity ? 
+                    (components.evenParity === calculateParity(paddedCardData, format).evenParity && 
+                     components.oddParity === calculateParity(paddedCardData, format).oddParity ? 'success' : 'warning') 
+                    : 'success';
+
+                showResult('hex-result', result, resultType);
+                
+            } else {
+                // No preamble - treat entire hex as card data
+                const format = detectFormat(fullBinary);
+                let paddedBinary = fullBinary;
+                
+                if (fullBinary.length <= currentFormat.totalBits) {
+                    paddedBinary = fullBinary.padStart(currentFormat.totalBits, '0');
+                    format = currentFormat;
+                }
+
+                const components = extractComponents(paddedBinary, format);
+                
+                result += `Format: ${format.name}\n`;
+                result += `Binary: ${paddedBinary}\n`;
+                result += `Length: ${paddedBinary.length} bits\n\n`;
+
+                if (components.facilityCode !== undefined) {
+                    result += `Facility Code: ${components.facilityCode}\n`;
+                }
+                if (components.cardNumber !== undefined) {
+                    result += `Card Number: ${components.cardNumber}\n`;
+                }
+                if (components.companyCode !== undefined) {
+                    result += `Company Code: ${components.companyCode}\n`;
+                }
+
+                result += `\nBinary Breakdown:\n`;
+                
+                if (format.hasParity) {
+                    const { evenParity: calcEvenParity, oddParity: calcOddParity } = calculateParity(paddedBinary, format);
+                    const parityValid = components.evenParity === calcEvenParity && components.oddParity === calcOddParity;
+                    
+                    result += `Even Parity: ${components.evenParity} (should be ${calcEvenParity})\n`;
+                    if (components.companyBinary) {
+                        result += `Company Code: ${components.companyBinary} = ${components.companyCode}\n`;
+                    }
+                    result += `Facility Code: ${components.facilityBinary} = ${components.facilityCode}\n`;
+                    result += `Card Number: ${components.cardBinary} = ${components.cardNumber}\n`;
+                    result += `Odd Parity: ${components.oddParity} (should be ${calcOddParity})\n`;
+                    result += `\nParity Check: ${parityValid ? 'VALID' : 'INVALID'}`;
+                } else {
+                    if (components.startSentinel) {
+                        result += `Start Sentinel: ${components.startSentinel}\n`;
+                    }
+                    if (components.header) {
+                        result += `Header: ${components.header}\n`;
+                    }
+                    if (components.companyBinary) {
+                        result += `Company Code: ${components.companyBinary} = ${components.companyCode}\n`;
+                    }
+                    result += `Facility Code: ${components.facilityBinary} = ${components.facilityCode}\n`;
+                    result += `Card Number: ${components.cardBinary} = ${components.cardNumber}`;
+                    if (components.endSentinel) {
+                        result += `\nEnd Sentinel: ${components.endSentinel}`;
+                    }
+                }
+
+                const resultType = format.hasParity ? 
+                    (components.evenParity === calculateParity(paddedBinary, format).evenParity && 
+                     components.oddParity === calculateParity(paddedBinary, format).oddParity ? 'success' : 'warning') 
+                    : 'success';
+
+                showResult('hex-result', result, resultType);
+            }
+        }
+
+        // Components to Binary/Hex (now handles preamble and auto-suggests format)
+        function componentsToFormat() {
+            const fc = parseInt(document.getElementById('fc-input').value);
+            const cardNum = parseInt(document.getElementById('card-input').value);
+            const preamble = document.getElementById('output-preamble').value.replace(/\s/g, '');
+
+            if (isNaN(fc) || fc < 0) {
+                showResult('components-result', 'Please enter a valid facility code (0 or greater).', 'error');
+                return;
+            }
+
+            if (isNaN(cardNum) || cardNum < 0) {
+                showResult('components-result', 'Please enter a valid card number (0 or greater).', 'error');
+                return;
+            }
+
+            if (preamble && !validateBinary(preamble)) {
+                showResult('components-result', 'Invalid preamble. Use only 0s and 1s.', 'error');
+                return;
+            }
+
+            // Check if values exceed current format limits and suggest alternatives
+            if (fc > currentFormat.maxFC || cardNum > currentFormat.maxCard) {
+                let suggestedFormats = [];
+                
+                for (const [key, format] of Object.entries(cardFormats)) {
+                    if (fc <= format.maxFC && cardNum <= format.maxCard) {
+                        suggestedFormats.push(format.name);
+                    }
+                }
+                
+                let errorMsg = '';
+                if (fc > currentFormat.maxFC) {
+                    errorMsg += `Facility Code ${fc} exceeds ${currentFormat.name} limit (max: ${currentFormat.maxFC.toLocaleString()}).\n`;
+                }
+                if (cardNum > currentFormat.maxCard) {
+                    errorMsg += `Card Number ${cardNum} exceeds ${currentFormat.name} limit (max: ${currentFormat.maxCard.toLocaleString()}).\n`;
+                }
+                
+                if (suggestedFormats.length > 0) {
+                    errorMsg += `\nSuggested formats that can handle these values:\n`;
+                    errorMsg += suggestedFormats.map(name => `• ${name}`).join('\n');
+                    errorMsg += `\n\nPlease select the appropriate format above and try again.`;
+                } else {
+                    errorMsg += `\nNo standard format can handle these values. Try using a custom format.`;
+                }
+                
+                showResult('components-result', errorMsg, 'error');
+                return;
+            }
+
+            let cardBinary = '';
+            let result = `Format: ${currentFormat.name}\n`;
+            result += `Facility Code: ${fc}\n`;
+            result += `Card Number: ${cardNum}\n`;
+            
+            if (preamble) {
+                result += `Preamble: ${preamble} (${preamble.length} bits)\n`;
+            }
+            result += `\n`;
+
+            // Build the card binary string based on format
+            const fcBinary = fc.toString(2).padStart(currentFormat.facilityBits, '0');
+            const cardNumBinary = cardNum.toString(2).padStart(currentFormat.cardBits, '0');
+            
+            if (currentFormat.hasParity) {
+                // For formats with parity, calculate parity bits
+                let dataBits = '';
+                
+                if (currentFormat.companyBits !== undefined) {
+                    // 35-bit format with company code
+                    const companyCode = 0; // Default company code
+                    const companyBinary = companyCode.toString(2).padStart(currentFormat.companyBits, '0');
+                    dataBits = companyBinary + fcBinary + cardNumBinary;
+                } else {
+                    dataBits = fcBinary + cardNumBinary;
+                }
+                
+                // Calculate parity for the data bits (without the parity bits themselves)
+                const tempBinary = '0' + dataBits + '0'; // Temporary with placeholder parity bits
+                const { evenParity, oddParity } = calculateParity(tempBinary, currentFormat);
+                
+                cardBinary = evenParity + dataBits + oddParity;
+                
+                result += `Card Data Binary Breakdown:\n`;
+                result += `Even Parity: ${evenParity}\n`;
+                if (currentFormat.companyBits !== undefined) {
+                    result += `Company Code: ${dataBits.slice(0, currentFormat.companyBits)} = 0\n`;
+                    result += `Facility Code: ${fcBinary} = ${fc}\n`;
+                    result += `Card Number: ${cardNumBinary} = ${cardNum}\n`;
+                } else {
+                    result += `Facility Code: ${fcBinary} = ${fc}\n`;
+                    result += `Card Number: ${cardNumBinary} = ${cardNum}\n`;
+                }
+                result += `Odd Parity: ${oddParity}\n`;
+                
+                // Special handling for test data that has parity errors
+                result += `\nNote: If output doesn't match expected data, check:\n`;
+                result += `• Preamble length (common: 18 bits for 26-bit, 12 bits for 32-bit)\n`;
+                result += `• Some real-world data has parity errors\n`;
+            } else if (currentFormat.totalBits === 32) {
+                // 32-bit format with header
+                const headerBits = '10101'; // 5-bit header
+                cardBinary = headerBits + fcBinary + cardNumBinary;
+                
+                result += `Card Data Binary Breakdown:\n`;
+                result += `Header: ${headerBits}\n`;
+                result += `Facility Code: ${fcBinary} = ${fc}\n`;
+                result += `Card Number: ${cardNumBinary} = ${cardNum}\n`;
+            } else if (currentFormat.totalBits === 44) {
+                // 44-bit format with sentinels
+                const startSentinel = '10';
+                const endSentinel = '01';
+                cardBinary = startSentinel + fcBinary + cardNumBinary + endSentinel;
+                
+                result += `Card Data Binary Breakdown:\n`;
+                result += `Start Sentinel: ${startSentinel}\n`;
+                result += `Facility Code: ${fcBinary} = ${fc}\n`;
+                result += `Card Number: ${cardNumBinary} = ${cardNum}\n`;
+                result += `End Sentinel: ${endSentinel}\n`;
+            } else {
+                // 48-bit or custom format without parity
+                cardBinary = fcBinary + cardNumBinary;
+                
+                result += `Card Data Binary Breakdown:\n`;
+                result += `Facility Code: ${fcBinary} = ${fc}\n`;
+                result += `Card Number: ${cardNumBinary} = ${cardNum}\n`;
+            }
+
+            // Add preamble if provided
+            const fullBinary = preamble + cardBinary;
+            const cardHex = parseInt(cardBinary, 2).toString(16).toUpperCase();
+            const fullHex = parseInt(fullBinary, 2).toString(16).toUpperCase();
+            
+            result += `\nCard Data Binary: ${cardBinary}\n`;
+            result += `Card Data Hex: ${cardHex}\n`;
+            result += `Card Data Decimal: ${parseInt(cardBinary, 2)}\n`;
+            
+            if (preamble) {
+                result += `\nFull Binary (with preamble): ${fullBinary}\n`;
+                result += `Full Hex (with preamble): ${fullHex}\n`;
+                result += `Full Decimal (with preamble): ${parseInt(fullBinary, 2)}`;
+            }
+
+            showResult('components-result', result);
+        }
+
+        // Binary/Hex Converter (now handles proper padding)
+        function convertBinaryHex() {
+            const input = document.getElementById('bin-hex-input').value.replace(/\s/g, '');
+            
+            if (!input) {
+                showResult('bin-hex-result', 'Please enter binary or hex data.', 'error');
+                return;
+            }
+
+            let result = '';
+
+            if (validateBinary(input)) {
+                // Binary to Hex
+                const hex = parseInt(input, 2).toString(16).toUpperCase();
+                const decimal = parseInt(input, 2);
+                const detectedFormat = detectFormat(input);
+                
+                result = `Input Type: Binary\n`;
+                result += `Binary: ${input}\n`;
+                result += `Hex: ${hex}\n`;
+                result += `Decimal: ${decimal}\n`;
+                result += `Length: ${input.length} bits\n`;
+                result += `Detected Format: ${detectedFormat.name}`;
+            } else if (validateHex(input)) {
+                // Hex to Binary (with smart padding)
+                const decimal = parseInt(input, 16);
+                let binary = decimal.toString(2);
+                const detectedFormat = detectFormat(binary);
+                
+                // Calculate expected length based on common preamble + format combinations
+                const commonLengths = [
+                    26, // 26-bit only
+                    32, // 32-bit only  
+                    44, // 26-bit + 18 preamble OR 32-bit + 12 preamble
+                    48, // 48-bit only
+                    50, // 34-bit + 16 preamble
+                    53  // 37-bit + 16 preamble
+                ];
+                
+                // Find the best length to pad to
+                let paddedBinary = binary;
+                let suggestedPreamble = 0;
+                
+                for (const targetLength of commonLengths) {
+                    if (binary.length <= targetLength) {
+                        paddedBinary = binary.padStart(targetLength, '0');
+                        
+                        // Suggest possible preamble lengths
+                        if (targetLength === 44) {
+                            if (binary.length <= 38) {
+                                suggestedPreamble = targetLength - 26; // 18-bit preamble for 26-bit
+                                if (binary.length <= 32) {
+                                    suggestedPreamble = targetLength - 32; // 12-bit preamble for 32-bit
+                                }
+                            }
+                        } else {
+                            suggestedPreamble = Math.max(0, targetLength - detectedFormat.totalBits);
+                        }
+                        break;
+                    }
+                }
+                
+                result = `Input Type: Hex\n`;
+                result += `Hex: ${input.toUpperCase()}\n`;
+                result += `Binary (original): ${binary} (${binary.length} bits)\n`;
+                
+                if (paddedBinary !== binary) {
+                    result += `Binary (padded): ${paddedBinary} (${paddedBinary.length} bits)\n`;
+                    result += `Padded with ${paddedBinary.length - binary.length} leading zeros\n`;
+                }
+                
+                result += `Decimal: ${decimal}\n`;
+                result += `Detected Format: ${detectedFormat.name}\n`;
+                
+                if (suggestedPreamble > 0) {
+                    result += `\nSuggestion: This might be a ${detectedFormat.name} format with ${suggestedPreamble}-bit preamble`;
+                }
+            } else {
+                showResult('bin-hex-result', 'Invalid input. Enter binary (0s and 1s) or hex (0-9, A-F).', 'error');
+                return;
+            }
+
+            showResult('bin-hex-result', result);
+        }
+
+        // Full Card Data Parser
+        function parseFullCardData() {
+            const fullData = document.getElementById('full-data-input').value.replace(/\s/g, '');
+            const preambleLength = parseInt(document.getElementById('preamble-length').value) || 0;
+            const autoDetect = document.getElementById('auto-detect').value === 'true';
+
+            if (!fullData) {
+                showResult('full-data-result', 'Please enter card data.', 'error');
+                return;
+            }
+
+            if (!validateBinary(fullData)) {
+                showResult('full-data-result', 'Invalid binary data. Use only 0s and 1s.', 'error');
+                return;
+            }
+
+            if (fullData.length < preambleLength + 1) {
+                showResult('full-data-result', `Insufficient data. Need more than ${preambleLength} bits.`, 'error');
+                return;
+            }
+
+            const preamble = fullData.slice(0, preambleLength);
+            const remainingData = fullData.slice(preambleLength);
+
+            let format = currentFormat;
+            let cardData = '';
+
+            if (autoDetect) {
+                // Try to detect the format from remaining data
+                format = detectFormat(remainingData);
+                cardData = remainingData.slice(0, format.totalBits);
+            } else {
+                // Use selected format
+                if (remainingData.length < currentFormat.totalBits) {
+                    showResult('full-data-result', `Insufficient card data. Expected ${currentFormat.totalBits} bits, got ${remainingData.length} bits.`, 'error');
+                    return;
+                }
+                cardData = remainingData.slice(0, currentFormat.totalBits);
+            }
+
+            const components = extractComponents(cardData, format);
+            const hex = parseInt(cardData, 2).toString(16).toUpperCase();
+
+            let result = `Full Data Length: ${fullData.length} bits\n`;
+            result += `Preamble (${preambleLength} bits): ${preamble}\n`;
+            result += `Card Data (${format.totalBits} bits): ${cardData}\n`;
+            result += `Format: ${format.name}\n\n`;
+
+            if (components.facilityCode !== undefined) {
+                result += `Facility Code: ${components.facilityCode}\n`;
+            }
+            if (components.cardNumber !== undefined) {
+                result += `Card Number: ${components.cardNumber}\n`;
+            }
+            if (components.companyCode !== undefined) {
+                result += `Company Code: ${components.companyCode}\n`;
+            }
+
+            result += `\nCard Data as Hex: ${hex}\n`;
+            result += `\nBinary Breakdown:\n`;
+            
+            if (format.hasParity) {
+                const { evenParity: calcEvenParity, oddParity: calcOddParity } = calculateParity(cardData, format);
+                const parityValid = components.evenParity === calcEvenParity && components.oddParity === calcOddParity;
+                
+                result += `Even Parity: ${components.evenParity} (should be ${calcEvenParity})\n`;
+                if (components.companyBinary) {
+                    result += `Company Code: ${components.companyBinary} = ${components.companyCode}\n`;
+                }
+                result += `Facility Code: ${components.facilityBinary} = ${components.facilityCode}\n`;
+                result += `Card Number: ${components.cardBinary} = ${components.cardNumber}\n`;
+                result += `Odd Parity: ${components.oddParity} (should be ${calcOddParity})\n`;
+                result += `\nParity Check: ${parityValid ? 'VALID' : 'INVALID'}`;
+            } else {
+                if (components.startSentinel) {
+                    result += `Start Sentinel: ${components.startSentinel}\n`;
+                }
+                if (components.companyBinary) {
+                    result += `Company Code: ${components.companyBinary} = ${components.companyCode}\n`;
+                }
+                result += `Facility Code: ${components.facilityBinary} = ${components.facilityCode}\n`;
+                result += `Card Number: ${components.cardBinary} = ${components.cardNumber}`;
+                if (components.endSentinel) {
+                    result += `\nEnd Sentinel: ${components.endSentinel}`;
+                }
+            }
+
+            const resultType = format.hasParity ? 
+                (components.evenParity === calculateParity(cardData, format).evenParity && 
+                 components.oddParity === calculateParity(cardData, format).oddParity ? 'success' : 'warning') 
+                : 'success';
+
+            showResult('full-data-result', result, resultType);
+        }
+
+        // Format Validator (enhanced)
+        function validateFormat() {
+            const input = document.getElementById('validate-input').value.replace(/\s/g, '');
+            
+            if (!input) {
+                showResult('validate-result', 'Please enter data to validate.', 'error');
+                return;
+            }
+
+            let result = '';
+            let isValid = true;
+            let binary = '';
+            let inputType = '';
+
+            if (validateBinary(input)) {
+                binary = input;
+                inputType = 'Binary';
+                result += `Input Type: Binary\n`;
+                result += `Length: ${input.length} bits\n\n`;
+            } else if (validateHex(input)) {
+                binary = parseInt(input, 16).toString(2);
+                inputType = 'Hex';
+                result += `Input Type: Hex\n`;
+                result += `Hex: ${input.toUpperCase()}\n`;
+                result += `As Binary: ${binary}\n`;
+                result += `Length: ${binary.length} bits\n\n`;
+            } else {
+                showResult('validate-result', 'Invalid format. Must be binary (0s and 1s) or hex (0-9, A-F).', 'error');
+                return;
+            }
+
+            // Detect primary format
+            const detectedFormat = detectFormat(binary);
+            result += `Primary Detected Format: ${detectedFormat.name}\n\n`;
+
+            // Check against all known formats
+            result += `Format Compatibility Analysis:\n`;
+            let compatibleFormats = [];
+            
+            for (const [key, format] of Object.entries(cardFormats)) {
+                if (binary.length === format.totalBits) {
+                    const components = extractComponents(binary, format);
+                    let compatibility = 'EXACT MATCH';
+                    let details = [];
+                    
+                    if (format.hasParity) {
+                        const { evenParity: calcEvenParity, oddParity: calcOddParity } = calculateParity(binary, format);
+                        const evenValid = components.evenParity === calcEvenParity;
+                        const oddValid = components.oddParity === calcOddParity;
+                        const parityValid = evenValid && oddValid;
+                        
+                        details.push(`Parity: ${parityValid ? 'VALID' : 'INVALID'}`);
+                        if (!parityValid) {
+                            compatibility = 'MATCH (parity errors)';
+                            isValid = false;
+                        }
+                    }
+                    
+                    if (components.facilityCode !== undefined) {
+                        details.push(`FC: ${components.facilityCode}`);
+                    }
+                    if (components.cardNumber !== undefined) {
+                        details.push(`Card: ${components.cardNumber}`);
+                    }
+                    
+                    result += `${compatibility} - ${format.name} (${format.totalBits} bits)\n`;
+                    result += `  ${details.join(', ')}\n`;
+                    
+                    compatibleFormats.push({
+                        format: format,
+                        components: components,
+                        valid: format.hasParity ? (components.evenParity === calculateParity(binary, format).evenParity && 
+                                                  components.oddParity === calculateParity(binary, format).oddParity) : true
+                    });
+                    
+                } else if (Math.abs(binary.length - format.totalBits) <= 2) {
+                    result += `CLOSE MATCH - ${format.name} (${format.totalBits} bits, diff: ${binary.length - format.totalBits})\n`;
+                }
+            }
+
+            // Check for common preamble + format combinations
+            result += `\nPossible Preamble Combinations:\n`;
+            const commonPreambles = [6, 12, 16, 18, 20];
+            let foundPreambleCombos = false;
+            
+            for (const preambleLen of commonPreambles) {
+                if (binary.length > preambleLen) {
+                    const cardData = binary.slice(preambleLen);
+                    const cardFormat = detectFormat(cardData);
+                    
+                    if (cardFormats[cardFormat.totalBits]) {
+                        const realFormat = cardFormats[cardFormat.totalBits];
+                        const components = extractComponents(cardData, realFormat);
+                        
+                        result += `${preambleLen}-bit preamble + ${realFormat.name}:\n`;
+                        result += `   Preamble: ${binary.slice(0, preambleLen)}\n`;
+                        result += `   Card Data: ${cardData}\n`;
+                        
+                        if (components.facilityCode !== undefined) {
+                            result += `   FC: ${components.facilityCode}, Card: ${components.cardNumber}\n`;
+                        }
+                        
+                        foundPreambleCombos = true;
+                    }
+                }
+            }
+            
+            if (!foundPreambleCombos) {
+                result += `No common preamble combinations detected.\n`;
+            }
+
+            // Overall assessment
+            result += `\nOverall Assessment:\n`;
+            if (compatibleFormats.length === 0) {
+                result += `No exact format matches found\n`;
+                result += `Try checking if this data includes a preamble\n`;
+                isValid = false;
+            } else if (compatibleFormats.length === 1) {
+                const match = compatibleFormats[0];
+                if (match.valid) {
+                    result += `Valid ${match.format.name} format\n`;
+                } else {
+                    result += `${match.format.name} format with parity errors\n`;
+                }
+            } else {
+                result += `Multiple format matches - context needed for definitive identification\n`;
+            }
+
+            // Special warnings
+            if (binary.length > 48) {
+                result += `Data length (${binary.length} bits) exceeds common card formats\n`;
+                isValid = false;
+            }
+
+            const resultType = isValid ? 'success' : 'warning';
+            showResult('validate-result', result, resultType);
+        }
+
+        // Initialize
+        updateFormatInfo();
+
+        // Auto-convert on input for quick results
+        document.getElementById('binary-input').addEventListener('input', function() {
+            const binary = this.value.replace(/\s/g, '');
+            const preambleLength = parseInt(document.getElementById('binary-preamble').value) || 0;
+            const cardDataLength = binary.length - preambleLength;
+            if (binary.length >= 20 && validateBinary(binary) && cardDataLength >= 20) {
+                binaryToComponents();
+            }
+        });
+
+        document.getElementById('hex-input').addEventListener('input', function() {
+            const hex = this.value.replace(/\s/g, '');
+            if (hex.length >= 5 && validateHex(hex)) {
+                hexToComponents();
+            }
+        });
+    </script>
+</body>
+</html>
